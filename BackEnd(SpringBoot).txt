@@ -1,0 +1,79 @@
+@RestController
+@RequestMapping("/api/subjects")
+public class SubjectController {
+
+    private final SubjectService subjectService;
+
+    public SubjectController(SubjectService subjectService) {
+        this.subjectService = subjectService;
+    }
+
+    // Tárgyak listázása
+    @GetMapping("/list")
+    public ResponseEntity<List<Subject>> listSubjects(@RequestParam String userId) {
+        return ResponseEntity.ok(subjectService.getSubjectsByUserId(userId));
+    }
+
+    // Tárgy felvétele
+    @PostMapping("/add")
+    public ResponseEntity<String> addSubject(@RequestBody SubjectRequest subjectRequest) {
+        subjectService.addSubject(subjectRequest);
+        return ResponseEntity.ok("Tárgy sikeresen felvéve!");
+    }
+
+    // Tárgy törlése
+    @DeleteMapping("/remove")
+    public ResponseEntity<String> removeSubject(@RequestParam String userId, @RequestParam String subjectId) {
+        subjectService.removeSubject(userId, subjectId);
+        return ResponseEntity.ok("Tárgy sikeresen törölve!");
+    }
+}
+
+@Service
+public class SubjectService {
+
+    private final SubjectRepository subjectRepository;
+
+    public SubjectService(SubjectRepository subjectRepository) {
+        this.subjectRepository = subjectRepository;
+    }
+
+    public List<Subject> getSubjectsByUserId(String userId) {
+        return subjectRepository.findByUserId(userId);
+    }
+
+    public void addSubject(SubjectRequest subjectRequest) {
+        Subject subject = new Subject(subjectRequest.getUserId(), subjectRequest.getSubjectId(), subjectRequest.getSubjectName());
+        subjectRepository.save(subject);
+    }
+
+    public void removeSubject(String userId, String subjectId) {
+        subjectRepository.deleteByUserIdAndSubjectId(userId, subjectId);
+    }
+}
+
+@Entity
+public class Subject {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    private String userId;
+    private String subjectId;
+    private String subjectName;
+
+    // Constructors, Getters, Setters
+}
+
+public interface SubjectRepository extends JpaRepository<Subject, Long> {
+    List<Subject> findByUserId(String userId);
+    void deleteByUserIdAndSubjectId(String userId, String subjectId);
+}
+
+public class SubjectRequest {
+    private String userId;
+    private String subjectId;
+    private String subjectName;
+
+    // Constructors, Getters, Setters
+}
